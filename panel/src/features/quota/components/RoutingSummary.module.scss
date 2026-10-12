@@ -1,0 +1,128 @@
+/* Routing verdict between the pool and the account rows: answer first, details on demand. */
+
+.summary,
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 28px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reason {
+  flex: 1 1 320px;
+  color: var(--text-secondary);
+}
+
+.tag {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.pick {
+  color: var(--viz-success);
+}
+
+.link,
+.toggle {
+  color: var(--primary-color);
+  font-size: 13px;
+}
+
+.toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+
+  li + li {
+    margin-top: 2px;
+  }
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 6px 10px 6px 0;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: 500;
+    color: var(--text-tertiary);
+  }
+}
+
+.picked td {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.account {
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.usage {
+  display: inline-block;
+  min-width: 36px;
+}
+
+.bar {
+  display: inline-block;
+  width: 64px;
+  height: 6px;
+  margin: 0 8px;
+  vertical-align: middle;
+  background: var(--bg-tertiary);
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--viz-success);
+  }
+}
+
+.dim {
+  color: var(--text-tertiary);
+}

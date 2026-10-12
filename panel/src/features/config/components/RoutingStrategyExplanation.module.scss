@@ -1,0 +1,33 @@
+@use '../../../styles/mixins' as *;
+
+.explain {
+  /* Sits beside the select, across the remaining columns of the row. */
+  grid-column: 2 / -1;
+  align-self: start;
+  margin-top: 24px;
+  padding: 2px 0 2px 12px;
+  border-left: 2px solid var(--primary-color);
+
+  @include mobile {
+    grid-column: auto;
+    margin-top: 0;
+  }
+  color: var(--text-secondary);
+  font-size: 13px;
+
+  p {
+    margin: 0 0 4px;
+  }
+
+  p:first-child {
+    color: var(--text-primary);
+  }
+}
+
+.label {
+  color: var(--text-tertiary);
+}
+
+.link {
+  color: var(--primary-color);
+}
