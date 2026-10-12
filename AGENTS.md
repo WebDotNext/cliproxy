@@ -9,4 +9,6 @@ The panel depends on the proxy's API contracts, so a change to a management endp
 
 Root `Makefile` targets: `build`, `test`, `install` (local binary and panel, then restart the launchd service).
 
+The model catalog is owned here: `proxy/internal/registry/models/models.json`, embedded in the binary. The local service runs with `--local-model` so it uses that file instead of fetching router-for-me's catalog. Add new models to it.
+
 There is no upstream remote. Never push to the router-for-me repositories.
