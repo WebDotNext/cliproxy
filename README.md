@@ -17,6 +17,10 @@ make install  # install the binary and panel locally, then restart the launchd s
 
 `make install` puts the binary in `~/.local/bin` and the panel in `~/.config/cli-proxy-api/static/management.html`. Config and auth files live outside the repo, in `~/.config/cli-proxy-api` and `~/.cli-proxy-api`.
 
-## Origin
+## Credits and license
 
-Both folders started from the open-source projects [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) and [Cli-Proxy-API-Management-Center](https://github.com/router-for-me/Cli-Proxy-API-Management-Center). Each is MIT licensed, and its LICENSE file stays in its folder. This repo does not track them upstream.
+This project is a fork built on [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) by [router-for-me](https://github.com/router-for-me). Credit goes to its authors and contributors for the original proxy server.
+
+The management panel started from [Cli-Proxy-API-Management-Center](https://github.com/router-for-me/Cli-Proxy-API-Management-Center), also by router-for-me.
+
+Both original projects are MIT licensed. Their license and copyright notices are preserved in [`proxy/LICENSE`](proxy/LICENSE) and [`panel/LICENSE`](panel/LICENSE). This repository is maintained independently and does not track an upstream remote.
