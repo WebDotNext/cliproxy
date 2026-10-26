@@ -69,6 +69,10 @@ routing:
 
 The full [configuration example](proxy/config.example.yaml) covers provider API keys, proxies, model aliases, payload rules, TLS, and additional routing settings.
 
+For Docker on the home server with private Tailscale HTTPS access, follow the
+[home-server deployment guide](deploy/README.md). It builds this fork's proxy and
+panel together and preserves provider logins outside the checkout.
+
 ### 3. Connect a provider
 
 For Claude OAuth, run:

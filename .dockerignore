@@ -1,0 +1,12 @@
+.git
+.github
+**/node_modules
+**/dist
+proxy/auths
+proxy/logs
+**/config.yaml
+**/.env
+**/.env.*
+**/cli-proxy-api
+**/CLIProxyAPI
+**/*test.go
