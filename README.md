@@ -22,7 +22,7 @@ Built on [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) and [Cli-Pr
 Install **Go 1.26+**, **Bun 1.3.14**, Git, and Make, then run:
 
 ```bash
-git clone https://github.com/wezzcoetzee/cliproxy.git
+git clone https://github.com/WebDotNext/cliproxy.git
 cd cliproxy
 make build
 ```

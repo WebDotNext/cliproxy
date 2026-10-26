@@ -1,0 +1,60 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  proxy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: proxy/go.mod
+          cache-dependency-path: proxy/go.sum
+      - name: Test proxy
+        working-directory: proxy
+        run: go test ./...
+
+  panel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Install dependencies
+        working-directory: panel
+        run: bun install --frozen-lockfile
+      - name: Test, lint and build panel
+        working-directory: panel
+        run: bun run verify
+
+  report:
+    if: always() && github.event_name == 'pull_request'
+    needs: [proxy, panel]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v9
+        env:
+          PROXY_RESULT: ${{ needs.proxy.result }}
+          PANEL_RESULT: ${{ needs.panel.result }}
+        with:
+          script: |
+            const marker = '<!-- pr-checks-comment -->';
+            const body = `${marker}\n| Check | Result |\n| --- | --- |\n| Proxy tests | ${process.env.PROXY_RESULT} |\n| Panel tests, lint and build | ${process.env.PANEL_RESULT} |`;
+            const issue = {owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number};
+            const comments = await github.paginate(github.rest.issues.listComments, issue);
+            const existing = comments.find(comment => comment.user.type === 'Bot' && comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({...context.repo, comment_id: existing.id, body});
+            } else {
+              await github.rest.issues.createComment({...issue, body});
+            }
