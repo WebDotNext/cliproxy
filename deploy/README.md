@@ -69,8 +69,29 @@ CLIPROXY_IMAGE=cliproxy:rollback docker compose -f deploy/compose.yaml up -d --n
 
 The Compose default image uses the local registry naming convention. To publish
 the built image to the home registry, run `docker compose -f deploy/compose.yaml push`.
-Deployment is manual: the existing home-server Actions runner belongs to another
-GitHub organization and is not available to this personal repository.
+
+## Automatic deployment
+
+The repository lives at `WebDotNext/cliproxy`. Merges and pushes to `main` run
+the Go tests and the panel's tests, lint and build on GitHub-hosted runners.
+Only after those checks pass does the deployment job build and publish an
+immutable image to the home registry, recreate the container, and wait for
+its health check. A failed rollout restores the previous running image.
+The `latest` image tag is updated only after a healthy rollout.
+
+The dedicated repository runner `homeserver-cliproxy` uses labels
+`self-hosted`, `docker`, and `cliproxy-deploy`. Its systemd service runs from
+`/home/wezz/actions-runner-cliproxy` as `wezz`. This keeps the organization's
+existing runner group policy, which excludes public repositories, unchanged.
+PR workflows use GitHub-hosted runners only. Deployments are serialized and
+cannot be cancelled by newer pushes. Manual workflow runs also deploy only
+the `main` branch.
+
+Provider credentials and Tailscale Serve settings stay on the server between
+deployments. No GitHub API-key secrets or port variables are required. Optionally
+add the `DISCORD_WEBHOOK_DEPLOY` Actions secret for deployment notifications.
+Without it, the notification step is skipped. The runner must retain Docker
+access and access to the registry at `192.168.1.239:5000`.
 
 Back up `/home/wezz/.config/cliproxy` securely, including `auths/`. Rebuilding or
 recreating the container preserves these files. `CLIPROXY_DATA_DIR` overrides

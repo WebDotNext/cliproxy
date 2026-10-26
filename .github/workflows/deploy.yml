@@ -1,0 +1,93 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  REGISTRY: 192.168.1.239:5000
+  PROJECT: cliproxy
+  CLIPROXY_DATA_DIR: /home/wezz/.config/cliproxy
+
+jobs:
+  quality:
+    concurrency:
+      group: quality-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/pr-checks.yml
+
+  deploy:
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, docker, cliproxy-deploy]
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-cliproxy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate deployment configuration
+        run: |
+          test -s "$CLIPROXY_DATA_DIR/config.yaml"
+          docker compose -f deploy/compose.yaml config --quiet
+
+      - name: Snapshot running image for rollback
+        id: snapshot
+        run: |
+          if docker inspect "$PROJECT" > /dev/null 2>&1; then
+            previous_image=$(docker inspect --format '{{.Image}}' "$PROJECT")
+            docker tag "$previous_image" "$PROJECT:rollback"
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build image
+        run: |
+          docker build --build-arg COMMIT="$GITHUB_SHA" \
+            --tag "$REGISTRY/$PROJECT:$GITHUB_SHA" .
+
+      - name: Push image
+        run: docker push "$REGISTRY/$PROJECT:$GITHUB_SHA"
+
+      - name: Deploy and check health
+        id: deploy
+        env:
+          CLIPROXY_IMAGE: ${{ env.REGISTRY }}/${{ env.PROJECT }}:${{ github.sha }}
+        run: docker compose -f deploy/compose.yaml up -d --no-build --wait --wait-timeout 90
+
+      - name: Roll back failed deployment
+        if: failure() && steps.deploy.outcome == 'failure' && steps.snapshot.outputs.available == 'true'
+        env:
+          CLIPROXY_IMAGE: cliproxy:rollback
+        run: docker compose -f deploy/compose.yaml up -d --no-build --wait --wait-timeout 90
+
+      - name: Publish latest healthy image
+        run: |
+          docker tag "$REGISTRY/$PROJECT:$GITHUB_SHA" "$REGISTRY/$PROJECT:latest"
+          docker push "$REGISTRY/$PROJECT:latest"
+
+      - name: Remove old local image tags
+        run: |
+          docker images "$REGISTRY/$PROJECT" --format '{{.Repository}}:{{.Tag}}' \
+            | grep -E ':[0-9a-f]{40}$' | tail -n +6 \
+            | xargs -r docker image rm || true
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK_DEPLOY: ${{ secrets.DISCORD_WEBHOOK_DEPLOY }}
+          DEPLOY_STATUS: ${{ job.status }}
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_DEPLOY" ]; then
+            message=$(printf 'cliproxy deployment %s (%s). Run: %s/%s/actions/runs/%s' \
+              "$DEPLOY_STATUS" "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+            payload=$(jq -n --arg content "$message" '{content: $content}')
+            curl --fail --silent --show-error --max-time 15 \
+              -H 'Content-Type: application/json' -d "$payload" "$DISCORD_WEBHOOK_DEPLOY" || true
+          fi
