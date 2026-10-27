@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { buildMessagesBody, buildSnippet } from '../src/features/playground/snippets';
-import { latestClaudeModels } from '../src/features/playground/latestModels';
+import { latestModels } from '../src/features/playground/latestModels';
 
 const request = {
   baseUrl: 'http://127.0.0.1:8317',
@@ -21,9 +21,11 @@ test('snippets carry the exact request, quotes and newlines included', () => {
   expect(typescript).toContain('system: "Reply with one word."');
 });
 
-test('model picker keeps only the newest model per family', () => {
+test('model picker keeps the newest Claude per family and every other provider', () => {
   expect(
-    latestClaudeModels([
+    latestModels([
+      'gpt-6.1-sol',
+      'gemini-3.8-flash',
       'claude-opus-4-5-20251101',
       'claude-opus-5',
       'claude-opus-5-5',
@@ -35,5 +37,12 @@ test('model picker keeps only the newest model per family', () => {
       'claude-fable-5-1',
       'claude-3-7-sonnet-20250219',
     ])
-  ).toEqual(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-fable-5-1']);
+  ).toEqual([
+    'claude-opus-5-5',
+    'claude-sonnet-5-5',
+    'claude-haiku-5-5',
+    'claude-fable-5-1',
+    'gemini-3.8-flash',
+    'gpt-6.1-sol',
+  ]);
 });
