@@ -32,20 +32,11 @@ Create additional device keys in the panel as needed. `allow-remote: true` lets
 the Docker gateway reach the management API; the host port remains loopback-only
 and Tailscale provides remote access.
 
-## Mac clients
+## Clients
 
-Codex and Grok read the client key from `CLIPROXY_API_KEY` and `XAI_API_KEY`.
-Apps launched from the Dock do not see variables from `~/.zshrc`. On each Mac,
-run the following from a repository checkout:
-
-```bash
-bash deploy/client-setup.sh
-```
-
-The script fetches the client key over SSH. It writes
-`~/.config/cliproxy/client.env` and sources that file from `~/.zshrc`. It also
-installs a LaunchAgent that exports the variables to GUI apps at login, then
-checks `/v1/models`. Quit and reopen Codex or T3 afterwards.
+Client machine setup (CLIs, desktop apps and services) lives in the Fleet repo:
+`scripts/configure-cliproxy.py`, then `scripts/cliproxy-app-env.sh`. See Fleet's
+`docs/cliproxy-clients.md`.
 
 ## Provider login
 
