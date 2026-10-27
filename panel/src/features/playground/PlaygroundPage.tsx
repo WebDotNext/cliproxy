@@ -18,7 +18,7 @@ import {
   buildSnippet,
   type SnippetLanguage,
 } from './snippets';
-import { latestClaudeModels } from './latestModels';
+import { latestModels, sortModels } from './latestModels';
 import styles from './PlaygroundPage.module.scss';
 
 const LANGUAGE_LABELS: Record<SnippetLanguage, string> = {
@@ -111,9 +111,7 @@ export function PlaygroundPage() {
 
   const modelOptions = useMemo(() => {
     const names = models.map(({ name }) => name);
-    const visible = showOlderModels
-      ? [...names].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-      : latestClaudeModels(names);
+    const visible = showOlderModels ? sortModels(names) : latestModels(names);
     return visible.map((name) => ({ value: name, label: name }));
   }, [models, showOlderModels]);
 
