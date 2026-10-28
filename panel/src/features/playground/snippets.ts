@@ -1,5 +1,5 @@
 /**
- * Builds copy-ready code for a Messages API call through the proxy. React-free
+ * Builds copy-ready code for the selected model’s API through the proxy. React-free
  * so the escaping can be tested directly.
  */
 
@@ -29,7 +29,7 @@ const literal = (value: string) => JSON.stringify(value);
 
 const shellQuote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`;
 
-const typescript = (request: PlaygroundRequest) => {
+const anthropicTypescript = (request: PlaygroundRequest) => {
   const system = request.system.trim() ? `\n  system: ${literal(request.system)},` : '';
   return `import Anthropic from '@anthropic-ai/sdk';
 
@@ -47,7 +47,7 @@ const msg = await client.messages.create({
 console.log(msg.content[0].type === 'text' ? msg.content[0].text : msg.content);`;
 };
 
-const python = (request: PlaygroundRequest) => {
+const anthropicPython = (request: PlaygroundRequest) => {
   const system = request.system.trim() ? `\n    system=${literal(request.system)},` : '';
   return `import os
 from anthropic import Anthropic
@@ -66,18 +66,69 @@ msg = client.messages.create(
 print(msg.content[0].text)`;
 };
 
-const curl = (request: PlaygroundRequest) =>
-  `curl ${request.baseUrl}/v1/messages \\
-  -H "x-api-key: $CLIPROXY_KEY" \\
-  -H "anthropic-version: ${ANTHROPIC_VERSION}" \\
-  -H "content-type: application/json" \\
-  -d ${shellQuote(JSON.stringify(buildMessagesBody(request)))}`;
+export const requestProtocol = (model: string) =>
+  /^(gpt-|o[134](?:-|$))/.test(model)
+    ? 'responses'
+    : model.startsWith('grok-')
+      ? 'chat'
+      : 'anthropic';
 
-const BUILDERS: Record<SnippetLanguage, (request: PlaygroundRequest) => string> = {
-  typescript,
-  python,
-  curl,
+export const buildApiRequest = (request: PlaygroundRequest) => {
+  const protocol = requestProtocol(request.model);
+  const messages = [
+    ...(request.system.trim() ? [{ role: 'system', content: request.system }] : []),
+    { role: 'user', content: request.message },
+  ];
+  if (protocol === 'responses')
+    return {
+      path: '/v1/responses',
+      body: {
+        model: request.model,
+        max_output_tokens: MAX_TOKENS,
+        ...(request.system.trim() ? { instructions: request.system } : {}),
+        input: request.message,
+      },
+    };
+  if (protocol === 'chat')
+    return {
+      path: '/v1/chat/completions',
+      body: { model: request.model, max_tokens: MAX_TOKENS, messages },
+    };
+  return { path: '/v1/messages', body: buildMessagesBody(request) };
 };
 
-export const buildSnippet = (language: SnippetLanguage, request: PlaygroundRequest) =>
-  BUILDERS[language](request);
+export const buildSnippet = (language: SnippetLanguage, request: PlaygroundRequest) => {
+  const protocol = requestProtocol(request.model);
+  const { path, body } = buildApiRequest(request);
+  if (language === 'curl') {
+    const auth =
+      protocol === 'anthropic'
+        ? '-H "x-api-key: $CLIPROXY_KEY" -H "anthropic-version: ' + ANTHROPIC_VERSION + '"'
+        : '-H "Authorization: Bearer $CLIPROXY_KEY"';
+    return `curl ${shellQuote(request.baseUrl + path)} ${auth} -H "content-type: application/json" -d ${shellQuote(JSON.stringify(body))}`;
+  }
+  if (protocol === 'anthropic')
+    return language === 'typescript' ? anthropicTypescript(request) : anthropicPython(request);
+  const method = protocol === 'responses' ? 'responses.create' : 'chat.completions.create';
+  const output = protocol === 'responses' ? 'output_text' : 'choices[0].message.content';
+  if (language === 'typescript')
+    return `import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: ${literal(request.baseUrl + '/v1')},
+  apiKey: process.env.CLIPROXY_KEY,
+});
+
+const response = await client.${method}(${JSON.stringify(body, null, 2)});
+console.log(response.${output});`;
+  return `import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url=${literal(request.baseUrl + '/v1')},
+    api_key=os.environ["CLIPROXY_KEY"],
+)
+
+response = client.${method}(**${JSON.stringify(body, null, 2)})
+print(response.${output})`;
+};

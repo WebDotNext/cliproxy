@@ -1598,6 +1598,7 @@
     "copied": "Скопировано",
     "ms": "{{ms}} мс",
     "tokens": "{{input}} вход · {{output}} выход",
+    "openai_env_hint": "Укажите API-ключ в CLIPROXY_KEY. Для OpenAI SDK добавьте /v1 к базовому URL.",
     "env_hint": "Укажите ваш API-ключ в CLIPROXY_KEY. С этим базовым URL работает любой Anthropic SDK.",
     "example_system": "Отнеси банковскую транзакцию ровно к одной категории: Groceries, Dining, Transport, Utilities, Rent, Health, Shopping, Entertainment, Income, Other. Ответь только категорией.",
     "example_message": "WOOLWORTHS SANDTON 14/09 R842.10"

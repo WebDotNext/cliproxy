@@ -1620,6 +1620,7 @@
     "copied": "已複製",
     "ms": "{{ms}} 毫秒",
     "tokens": "輸入 {{input}} · 輸出 {{output}}",
+    "openai_env_hint": "將 CLIPROXY_KEY 設為你的 API 金鑰。使用 OpenAI SDK 時，請在 Base URL 後加上 /v1。",
     "env_hint": "將 CLIPROXY_KEY 設為你的 API 金鑰。任何 Anthropic SDK 都可使用此 Base URL。",
     "example_system": "將這筆銀行交易歸入以下唯一一個類別：Groceries, Dining, Transport, Utilities, Rent, Health, Shopping, Entertainment, Income, Other。只回覆類別。",
     "example_message": "WOOLWORTHS SANDTON 14/09 R842.10"

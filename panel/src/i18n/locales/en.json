@@ -1595,6 +1595,7 @@
     "copied": "Copied",
     "ms": "{{ms}} ms",
     "tokens": "{{input}} in · {{output}} out",
+    "openai_env_hint": "Set CLIPROXY_KEY to your API key. Use the OpenAI SDK with this base URL followed by /v1.",
     "env_hint": "Set CLIPROXY_KEY to your API key. Any Anthropic SDK works with this base URL.",
     "example_system": "Categorize the bank transaction into exactly one of: Groceries, Dining, Transport, Utilities, Rent, Health, Shopping, Entertainment, Income, Other. Reply with the category only.",
     "example_message": "WOOLWORTHS SANDTON 14/09 R842.10"

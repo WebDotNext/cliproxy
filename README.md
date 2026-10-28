@@ -11,7 +11,7 @@ Built on [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) and [Cli-Pr
 - **Compatible APIs:** OpenAI chat completions and Responses, Anthropic messages, and Gemini endpoints, with streaming and tool support where the provider supports them.
 - **Multiple provider connections:** Claude and Codex OAuth accounts, plus other supported OAuth providers and API-key upstreams.
 - **Account pooling:** round-robin, weighted, fill-first, and Claude quota-aware routing, with optional session affinity.
-- **Browser management:** provider setup, OAuth and auth files, quota inspection, configuration editing, logs, and a playground for trying requests.
+- **Browser management:** provider setup, OAuth and auth files, quota inspection, configuration editing, logs, and a playground for trying requests. The playground uses Anthropic Messages for Claude, OpenAI Responses for GPT models, and OpenAI-compatible Chat Completions for Grok. Its Older models toggle reveals previous releases; latest mode keeps the newest release per model variant.
 - **One panel artifact:** the production UI builds to a single HTML file served by the proxy.
 - **A repository-owned model catalog:** run with `--local-model` to use the catalogs embedded in the binary.
 
