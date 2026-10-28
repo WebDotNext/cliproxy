@@ -111,6 +111,7 @@ Client applications use the **client API key** from `access.api-keys`. The manag
 | Anthropic-compatible client base URL | `http://127.0.0.1:8317` | Client API key |
 | Management panel | `http://127.0.0.1:8317/management.html` | Management key |
 | Management API | `http://127.0.0.1:8317/v8/management` | Management key |
+| Containers on the host's `app-network` | `http://cliproxy:8317/v1` | Client API key |
 
 List the models available to your connected accounts:
 

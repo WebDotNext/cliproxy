@@ -12,6 +12,9 @@ services:
     mem_limit: 512m
     ports:
       - "127.0.0.1:8317:8317"
+    networks:
+      - default
+      - app-network
     volumes:
       - ${CLIPROXY_DATA_DIR:-/home/wezz/.config/cliproxy}:/data
     environment:
@@ -25,3 +28,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+# Lets apps deployed on this host reach the proxy at http://cliproxy:8317 without exposing it beyond localhost.
+networks:
+  app-network:
+    external: true
