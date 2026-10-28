@@ -10,11 +10,12 @@ import { apiKeyNameFingerprint, readApiKeyNames } from '@/features/config/apiKey
 import { useAuthStore, useModelsStore } from '@/stores';
 import { copyToClipboard } from '@/utils/clipboard';
 import { maskApiKey } from '@/utils/format';
-import { isRecord } from '@/utils/helpers';
+import { readText, readTokens } from './response';
 import {
   ANTHROPIC_VERSION,
   SNIPPET_LANGUAGES,
-  buildMessagesBody,
+  buildApiRequest,
+  requestProtocol,
   buildSnippet,
   type SnippetLanguage,
 } from './snippets';
@@ -34,23 +35,6 @@ interface PlaygroundResult {
   inputTokens: number | null;
   outputTokens: number | null;
 }
-
-const readText = (body: unknown): string => {
-  if (!isRecord(body)) return typeof body === 'string' ? body : JSON.stringify(body, null, 2);
-  if (Array.isArray(body.content)) {
-    return body.content
-      .filter(isRecord)
-      .map((block) => (typeof block.text === 'string' ? block.text : ''))
-      .join('');
-  }
-  const error = isRecord(body.error) ? body.error.message : body.error;
-  return typeof error === 'string' ? error : JSON.stringify(body, null, 2);
-};
-
-const readTokens = (body: unknown, key: 'input_tokens' | 'output_tokens') => {
-  const usage = isRecord(body) && isRecord(body.usage) ? body.usage : null;
-  return usage && typeof usage[key] === 'number' ? usage[key] : null;
-};
 
 function CopyButton({ text }: { text: string }) {
   const { t } = useTranslation();
@@ -138,16 +122,23 @@ export function PlaygroundPage() {
     setSending(true);
     const started = performance.now();
     try {
-      const response = await axios.post(`${apiBase}/v1/messages`, buildMessagesBody(request), {
-        headers: { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
+      const { path, body } = buildApiRequest(request);
+      const response = await axios.post(`${apiBase}${path}`, body, {
+        headers:
+          requestProtocol(model) === 'anthropic'
+            ? { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION }
+            : { Authorization: `Bearer ${apiKey}` },
         validateStatus: () => true,
       });
       setResult({
         status: response.status,
         ms: Math.round(performance.now() - started),
         text: readText(response.data),
-        inputTokens: readTokens(response.data, 'input_tokens'),
-        outputTokens: readTokens(response.data, 'output_tokens'),
+        inputTokens:
+          readTokens(response.data, 'input_tokens') ?? readTokens(response.data, 'prompt_tokens'),
+        outputTokens:
+          readTokens(response.data, 'output_tokens') ??
+          readTokens(response.data, 'completion_tokens'),
       });
     } catch (error) {
       setResult({
@@ -271,7 +262,13 @@ export function PlaygroundPage() {
             <CopyButton text={snippet} />
           </div>
           <pre className={styles.code}>{snippet}</pre>
-          <p className={styles.hint}>{t('playground.env_hint')}</p>
+          <p className={styles.hint}>
+            {t(
+              requestProtocol(model) === 'anthropic'
+                ? 'playground.env_hint'
+                : 'playground.openai_env_hint'
+            )}
+          </p>
         </section>
       </div>
     </div>

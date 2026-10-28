@@ -1595,6 +1595,7 @@
     "copied": "복사됨",
     "ms": "{{ms}} ms",
     "tokens": "입력 {{input}} · 출력 {{output}}",
+    "openai_env_hint": "CLIPROXY_KEY를 API 키로 설정하세요. OpenAI SDK의 기본 URL에는 /v1을 추가하세요.",
     "env_hint": "CLIPROXY_KEY를 API 키로 설정하세요. 모든 Anthropic SDK가 이 기본 URL로 작동합니다.",
     "example_system": "은행 거래를 다음 중 정확히 하나로 분류하세요: Groceries, Dining, Transport, Utilities, Rent, Health, Shopping, Entertainment, Income, Other. 카테고리만 답하세요.",
     "example_message": "WOOLWORTHS SANDTON 14/09 R842.10"

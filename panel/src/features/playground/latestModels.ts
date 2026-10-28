@@ -2,7 +2,7 @@
  * Narrows the proxy's model list for the playground picker. The proxy only lists
  * models backed by a logged-in account, so every provider shown here is usable.
  * Claude keeps just the newest model per family, so a new release replaces the
- * old one without a code change; other providers are listed as-is.
+ * old one without a code change. GPT and Grok keep the newest version per variant.
  */
 
 const FAMILIES = ['opus', 'sonnet', 'haiku', 'fable'] as const;
@@ -16,6 +16,7 @@ export const sortModels = (ids: readonly string[]) =>
 export function latestModels(ids: readonly string[]): string[] {
   const newest = new Map<string, { id: string; version: number }>();
   const others: string[] = [];
+  const versioned = new Map<string, { id: string; version: number[] }>();
   for (const id of ids) {
     if (id.startsWith('claude-')) {
       const match = MODEL_ID.exec(id);
@@ -24,8 +25,26 @@ export function latestModels(ids: readonly string[]): string[] {
       const version = Number(major) * 100 + Number(minor);
       if ((newest.get(family)?.version ?? -1) < version) newest.set(family, { id, version });
     } else {
-      others.push(id);
+      const match = /^(gpt|grok)-(\d+(?:\.\d+)*)(.*)$/.exec(id);
+      if (!match) {
+        others.push(id);
+        continue;
+      }
+      const [, provider, release, variant] = match;
+      const key = provider + variant;
+      const version = release.split('.').map(Number);
+      const previous = versioned.get(key);
+      const difference =
+        previous &&
+        Array.from(
+          { length: Math.max(version.length, previous.version.length) },
+          (_, i) => (version[i] ?? 0) - (previous.version[i] ?? 0)
+        ).find((value) => value !== 0);
+      if (!previous || (difference ?? 0) > 0) versioned.set(key, { id, version });
     }
   }
-  return [...FAMILIES.flatMap((family) => newest.get(family)?.id ?? []), ...sortModels(others)];
+  return [
+    ...FAMILIES.flatMap((family) => newest.get(family)?.id ?? []),
+    ...sortModels([...others, ...Array.from(versioned.values(), ({ id }) => id)]),
+  ];
 }
